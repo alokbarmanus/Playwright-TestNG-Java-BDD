@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run TestNG DEV",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "test",
+        "-Denv=dev"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run TestNG SIT",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "test",
+        "-Denv=sit"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run TestNG UAT",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "test",
+        "-Denv=uat"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

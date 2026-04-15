@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="Playwright-TestNG-Java-BDD" parallel="false" thread-count="4" verbose="1">
+    <listeners>
+        <listener class-name="com.playwrightproject.listeners.EnvironmentListener"/>
+        <listener class-name="com.playwrightproject.listeners.ExtentReportListener"/>
+    </listeners>
+    
+    <test name="DEV_Execution">
+        <parameter name="scenario.file.loc" value="src/test/resources/features"/>
+        <parameter name="txt.scenario.file.ext" value=".feature"/>
+        <parameter name="step.provider.pkg" value="com.playwrightproject.steps"/>
+        <parameter name="env.resources" value="src/test/resources/env/dev"/>
+
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+
+        <classes>
+            <class name="com.playwrightproject.runner.CucumberTest"/>
+        </classes>
+    </test>
+</suite>

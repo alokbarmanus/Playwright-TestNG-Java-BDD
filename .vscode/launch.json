@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug TestNG DEV",
+      "request": "launch",
+      "mainClass": "org.testng.TestNG",
+      "projectName": "Playwright-TestNG-Java-BDD",
+      "args": "src/test/resources/testng/testng-dev.xml",
+      "vmArgs": "-Denv=dev",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole"
+    },
+    {
+      "type": "java",
+      "name": "Debug TestNG SIT",
+      "request": "launch",
+      "mainClass": "org.testng.TestNG",
+      "projectName": "Playwright-TestNG-Java-BDD",
+      "args": "src/test/resources/testng/testng-sit.xml",
+      "vmArgs": "-Denv=sit",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole"
+    },
+    {
+      "type": "java",
+      "name": "Debug TestNG UAT",
+      "request": "launch",
+      "mainClass": "org.testng.TestNG",
+      "projectName": "Playwright-TestNG-Java-BDD",
+      "args": "src/test/resources/testng/testng-uat.xml",
+      "vmArgs": "-Denv=uat",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole"
+    }
+  ]
+}

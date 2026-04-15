@@ -1,0 +1,32 @@
+# Build output
+/target/
+
+# Test output and reports
+/test-output/
+/surefire-reports/
+/failsafe-reports/
+/playwright-report/
+/test-results/
+
+# IDE metadata
+/.idea/
+*.iml
+/.classpath
+/.project
+/.settings/
+.factorypath
+
+# VS Code: ignore local files, keep shared workspace config
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/launch.json
+!/.vscode/tasks.json
+!/.vscode/extensions.json
+
+# Logs and runtime artifacts
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
