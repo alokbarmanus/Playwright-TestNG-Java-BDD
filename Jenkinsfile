@@ -65,35 +65,47 @@ pipeline {
                     junit testResults: 'target/surefire-reports/**/*.xml',
                           allowEmptyResults: true
 
-                    // Cucumber HTML report
-                    publishHTML(target: [
-                        reportName         : 'Cucumber Report',
-                        reportDir          : 'target/cucumber-reports',
-                        reportFiles        : 'index.html',
-                        keepAll            : true,
-                        alwaysLinkToLastBuild: true,
-                        allowMissing       : true
-                    ])
+                    script {
+                        if (fileExists('target/cucumber-reports/index.html')) {
+                            publishHTML(target: [
+                                reportName            : 'Cucumber Report',
+                                reportDir             : 'target/cucumber-reports',
+                                reportFiles           : 'index.html',
+                                keepAll               : true,
+                                alwaysLinkToLastBuild : true,
+                                allowMissing          : true
+                            ])
+                        } else {
+                            echo 'Cucumber report not found at target/cucumber-reports/index.html. Skipping publish.'
+                        }
 
-                    // Extent HTML report
-                    publishHTML(target: [
-                        reportName         : 'Extent Report',
-                        reportDir          : 'target/extent-reports',
-                        reportFiles        : 'TestExecutionReport.html',
-                        keepAll            : true,
-                        alwaysLinkToLastBuild: true,
-                        allowMissing       : true
-                    ])
+                        if (fileExists('target/extent-reports/TestExecutionReport.html')) {
+                            publishHTML(target: [
+                                reportName            : 'Extent Report',
+                                reportDir             : 'target/extent-reports',
+                                reportFiles           : 'TestExecutionReport.html',
+                                keepAll               : true,
+                                alwaysLinkToLastBuild : true,
+                                allowMissing          : true
+                            ])
+                        } else {
+                            echo 'Extent report not found at target/extent-reports/TestExecutionReport.html. Skipping publish.'
+                        }
 
-                    // TestNG HTML report
-                    publishHTML(target: [
-                        reportName         : 'TestNG Report',
-                        reportDir          : "target/surefire-reports/Playwright-TestNG-Java-BDD",
-                        reportFiles        : 'DEV_Execution.html',
-                        keepAll            : true,
-                        alwaysLinkToLastBuild: true,
-                        allowMissing       : true
-                    ])
+                        String testngReportFile = "${params.TEST_ENV.toUpperCase()}_Execution.html"
+                        if (fileExists("target/surefire-reports/Playwright-TestNG-Java-BDD/${testngReportFile}")) {
+                            publishHTML(target: [
+                                reportName            : 'TestNG Report',
+                                reportDir             : 'target/surefire-reports/Playwright-TestNG-Java-BDD',
+                                reportFiles           : testngReportFile,
+                                keepAll               : true,
+                                alwaysLinkToLastBuild : true,
+                                allowMissing          : true
+                            ])
+                        } else {
+                            echo "TestNG report not found at target/surefire-reports/Playwright-TestNG-Java-BDD/${testngReportFile}. Skipping publish."
+                        }
+                    }
 
                     // Archive all report artifacts
                     archiveArtifacts artifacts: '''

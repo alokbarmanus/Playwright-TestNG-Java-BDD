@@ -1,6 +1,8 @@
 package com.playwrightproject.base;
 
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.options.WaitUntilState;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
@@ -22,6 +24,8 @@ public class TestBase extends BaseStepDefinitions {
     private static final int DEFAULT_VIEWPORT_HEIGHT = 1080;
     private static final int DEFAULT_VIEWPORT_WIDTH_OFFSET = 16;
     private static final int DEFAULT_VIEWPORT_HEIGHT_OFFSET = 96;
+    private static final double DEFAULT_NAVIGATION_TIMEOUT_MS = 60000;
+    private static final int DEFAULT_NAVIGATION_RETRIES = 2;
 
     protected Playwright playwright;
     protected Browser browser;
@@ -101,7 +105,31 @@ public class TestBase extends BaseStepDefinitions {
 
         context = browser.newContext(new Browser.NewContextOptions().setViewportSize(viewportWidth, viewportHeight));
         page = context.newPage();
+        page.setDefaultNavigationTimeout(getDoubleProperty("navigation.timeout.ms", DEFAULT_NAVIGATION_TIMEOUT_MS));
         CURRENT_PAGE.set(page);
+    }
+
+    public void navigateToUrlWithRetry(String url) {
+        double timeoutMs = getDoubleProperty("navigation.timeout.ms", DEFAULT_NAVIGATION_TIMEOUT_MS);
+        int retries = getIntProperty("navigation.retry.count", DEFAULT_NAVIGATION_RETRIES);
+
+        Page.NavigateOptions options = new Page.NavigateOptions()
+            .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+            .setTimeout(timeoutMs);
+
+        for (int attempt = 1; attempt <= retries; attempt++) {
+            try {
+                page.navigate(url, options);
+                page.waitForLoadState(LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(timeoutMs));
+                return;
+            } catch (PlaywrightException ex) {
+                if (attempt == retries) {
+                    throw ex;
+                }
+                System.out.println("Navigation attempt " + attempt + " failed for URL: " + url + ". Retrying...");
+                page.waitForTimeout(1000);
+            }
+        }
     }
 
     public void tearDown() {
@@ -178,6 +206,20 @@ public class TestBase extends BaseStepDefinitions {
 
         try {
             return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid value for " + key + ": " + value + ". Using default: " + defaultValue);
+            return defaultValue;
+        }
+    }
+
+    private double getDoubleProperty(String key, double defaultValue) {
+        String value = getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        try {
+            return Double.parseDouble(value.trim());
         } catch (NumberFormatException e) {
             System.out.println("Invalid value for " + key + ": " + value + ". Using default: " + defaultValue);
             return defaultValue;
