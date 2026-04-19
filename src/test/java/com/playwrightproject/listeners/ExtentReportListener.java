@@ -81,8 +81,6 @@ public class ExtentReportListener implements ITestListener {
         return extent;
     }
 
-    // ------------------------------------------------------------------ lifecycle
-
     @Override
     public void onStart(ITestContext context) {
         System.out.println("[ExtentReport] Suite started: " + context.getSuite().getName());
@@ -192,9 +190,6 @@ public class ExtentReportListener implements ITestListener {
         CURRENT_RESULT.remove();
     }
 
-    // ------------------------------------------------------------------ helpers
-
-    /** Extracts the Cucumber scenario name from TestNG parameters. */
     private String resolveScenarioName(ITestResult result) {
         Object[] params = result.getParameters();
         if (params != null && params.length > 0 && params[0] instanceof PickleWrapper) {
@@ -203,7 +198,6 @@ public class ExtentReportListener implements ITestListener {
         return result.getMethod().getMethodName();
     }
 
-    /** Extracts Cucumber tags (e.g. @smoke, @regression) from the scenario. */
     private List<String> resolveScenarioTags(ITestResult result) {
         Object[] params = result.getParameters();
         if (params != null && params.length > 0 && params[0] instanceof PickleWrapper) {

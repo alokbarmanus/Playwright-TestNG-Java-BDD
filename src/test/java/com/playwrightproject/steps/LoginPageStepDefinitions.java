@@ -19,7 +19,7 @@ public class LoginPageStepDefinitions extends TestBase {
     public void i_launch_the_application() {
         String url = property("app.url");
         ExtentReportListener.logInfo("Launching application URL: " + url);
-        page().navigate(url);
+        testContext.getTestBase().navigateToUrlWithRetry(url);
         page().waitForTimeout(2000);
         ExtentReportListener.logPass("Application launched successfully");
     }
