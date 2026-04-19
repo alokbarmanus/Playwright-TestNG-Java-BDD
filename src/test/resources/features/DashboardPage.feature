@@ -28,4 +28,4 @@ Feature: Dashboard Page Features
       | Dashboard  |
       | Directory  |
       | Maintenance  |
-      | Buzz1  |
+      | Buzz  |
