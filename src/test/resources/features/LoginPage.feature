@@ -1,24 +1,24 @@
-Feature: Login
+#Author: alokbarmanqa@gmail.com
+Feature: Login Page Features
 
-  @regression
-  @dataFile:env/${env}/data/data.json
-  Scenario: Successful login
+  @regression @scenario1
+  @dataFile:env/${env}/data/loginData.json
+  Scenario: LoginPage: Successful login using Json Plain Data
     Given I launch the application
-    #When I enter username "Admin"
-    When user login with '${username}' and '${password}'
+    When user login with "${username}" and "${password}"
+    Then I should see the dashboard
+    Then user verifies page header as Dashboard
+
+  @regression @smoke @scenario2
+  @dataFile:env/${env}/data/loginDataMap.json
+  Scenario: LoginPage: Successful login using Json Map Data
+    Given I launch the application
+    When user login with "${loginDataAdmin}" into application
     Then I should see the dashboard
 
-  @smoke
-  @dataFile:env/${env}/data/datamap.json
-  Scenario: Successful login
+  @regression @sanity @scenario3
+  Scenario: LoginPage: Successful login using hardcoded data
     Given I launch the application
-    #When I enter username "Admin"
     When user login with "Admin" and "admin123"
-    When user enter address info using '${address}' in the form
     Then I should see the dashboard
-
-  @sanity
-  Scenario: Successful login
-    Given I launch the application
-    When I enter username "Admin"
-    Then I should see the dashboard
+    

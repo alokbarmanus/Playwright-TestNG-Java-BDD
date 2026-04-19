@@ -1,9 +1,11 @@
 package com.playwrightproject.hooks;
 
 import com.playwrightproject.context.TestContext;
+import com.playwrightproject.listeners.ExtentReportListener;
 import com.playwrightproject.utils.JsonDataLoader;
 import com.playwrightproject.utils.RuntimeMemoryManager;
 import io.cucumber.java.After;
+import io.cucumber.java.AfterStep;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 
@@ -18,6 +20,7 @@ public class Hooks {
 
     private final TestContext testContext;
     private static final ConcurrentMap<String, AtomicInteger> SCENARIO_ITERATION = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Boolean> FAILURE_SCREENSHOT_CAPTURED = ThreadLocal.withInitial(() -> false);
 
     public Hooks(TestContext testContext) {
         this.testContext = testContext;
@@ -25,6 +28,7 @@ public class Hooks {
 
     @Before
     public void setup(Scenario scenario) {
+        FAILURE_SCREENSHOT_CAPTURED.set(false);
         RuntimeMemoryManager.clear();
         testContext.getTestBase().setUp();
 
@@ -46,6 +50,20 @@ public class Hooks {
         }
     }
 
+    @AfterStep
+    public void captureFailureStepScreenshot(Scenario scenario) {
+        if (!scenario.isFailed() || Boolean.TRUE.equals(FAILURE_SCREENSHOT_CAPTURED.get())) {
+            return;
+        }
+
+        String screenshotPath = ExtentReportListener.captureScreenshotToFile("step-failure-" + scenario.getName());
+        if (screenshotPath != null) {
+            ExtentReportListener.logFail("Step failed in scenario: " + scenario.getName());
+            ExtentReportListener.attachScreenshot(screenshotPath, "Failed Step Screenshot");
+        }
+        FAILURE_SCREENSHOT_CAPTURED.set(true);
+    }
+
     private String resolveDataFilePath(String rawPath) {
         String env = System.getProperty("env", "dev");
         return rawPath.replace("${env}", env);
@@ -53,6 +71,7 @@ public class Hooks {
 
     @After
     public void teardown() {
+        FAILURE_SCREENSHOT_CAPTURED.remove();
         testContext.getTestBase().tearDown();
         testContext.setScenarioData(Collections.emptyMap());
         RuntimeMemoryManager.clear();

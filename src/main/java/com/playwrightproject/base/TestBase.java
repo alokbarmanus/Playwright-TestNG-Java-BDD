@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class TestBase {
+public class TestBase extends BaseStepDefinitions {
     /** Thread-local Page holder so listeners can take screenshots without DI. */
     private static final ThreadLocal<Page> CURRENT_PAGE = new ThreadLocal<>();
 
