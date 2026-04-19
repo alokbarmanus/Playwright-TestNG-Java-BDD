@@ -14,12 +14,20 @@ import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 
-import java.util.Base64;
 import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ExtentReportListener implements ITestListener {
 
     private static final String REPORT_PATH = "target/extent-reports/TestExecutionReport.html";
+    private static final String REPORT_DIR = "target/extent-reports";
+    private static final String IMG_DIR = REPORT_DIR + "/img";
+    private static final DateTimeFormatter TS_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS");
 
     private static final ExtentReports EXTENT = buildExtentReports();
     private static final ThreadLocal<ExtentTest> CURRENT_TEST = new ThreadLocal<>();
@@ -59,6 +67,7 @@ public class ExtentReportListener implements ITestListener {
     }
 
     private static ExtentReports buildExtentReports() {
+        ensureReportDirectories();
         ExtentSparkReporter spark = new ExtentSparkReporter(REPORT_PATH);
         spark.config().setTheme(Theme.DARK);
         spark.config().setReportName("Playwright BDD Test Report");
@@ -118,10 +127,10 @@ public class ExtentReportListener implements ITestListener {
             return;
         }
         try {
-            String base64 = captureScreenshotAsBase64();
-            if (base64 != null) {
+            String screenshotPath = captureScreenshotToFile("test-failure");
+            if (screenshotPath != null) {
                 test.fail(result.getThrowable(),
-                    MediaEntityBuilder.createScreenCaptureFromBase64String(base64, "Failure Screenshot").build());
+                    MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath, "Failure Screenshot").build());
             } else {
                 test.fail(result.getThrowable());
             }
@@ -131,6 +140,39 @@ public class ExtentReportListener implements ITestListener {
         } finally {
             CURRENT_TEST.remove();
             CURRENT_RESULT.remove();
+        }
+    }
+
+    public static String captureScreenshotToFile(String namePrefix) {
+        Page page = TestBase.getCurrentPage();
+        if (page == null) {
+            return null;
+        }
+
+        ensureReportDirectories();
+        String safePrefix = sanitizeFileName(namePrefix == null || namePrefix.isBlank() ? "screenshot" : namePrefix);
+        String fileName = safePrefix + "_" + TS_FORMATTER.format(LocalDateTime.now())
+            + "_t" + Thread.currentThread().getId() + ".png";
+        Path outputPath = Paths.get(IMG_DIR, fileName);
+        page.screenshot(new Page.ScreenshotOptions().setPath(outputPath).setFullPage(false));
+        return "img/" + fileName;
+    }
+
+    public static void attachScreenshot(String screenshotPath, String title) {
+        if (screenshotPath == null || screenshotPath.isBlank()) {
+            return;
+        }
+
+        ExtentTest test = CURRENT_TEST.get();
+        if (test == null) {
+            return;
+        }
+
+        String label = (title == null || title.isBlank()) ? "Screenshot" : title;
+        try {
+            test.info(label, MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath, label).build());
+        } catch (Exception e) {
+            test.warning("Unable to attach screenshot to report: " + e.getMessage());
         }
     }
 
@@ -170,13 +212,15 @@ public class ExtentReportListener implements ITestListener {
         return List.of();
     }
 
-    /** Takes a Playwright screenshot of the current page and returns it as a Base64 string. */
-    private String captureScreenshotAsBase64() {
-        Page page = TestBase.getCurrentPage();
-        if (page == null) {
-            return null;
+    private static void ensureReportDirectories() {
+        try {
+            Files.createDirectories(Paths.get(IMG_DIR));
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create extent report image folder: " + IMG_DIR, e);
         }
-        byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setFullPage(false));
-        return Base64.getEncoder().encodeToString(screenshot);
+    }
+
+    private static String sanitizeFileName(String value) {
+        return value.replaceAll("[^a-zA-Z0-9-_]", "_");
     }
 }
