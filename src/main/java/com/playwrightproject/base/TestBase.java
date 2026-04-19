@@ -33,7 +33,7 @@ public class TestBase extends BaseStepDefinitions {
         playwright = Playwright.create();
         loadProperties(); // Load properties first to get browser.name
         String browserName = getProperty("browser.name");
-        boolean headless = Boolean.parseBoolean(getProperty("headless"));
+        boolean headless = resolveHeadlessMode();
         String viewportMode = getProperty("viewport.mode");
         System.out.println("Launching browser: " + browserName);
         System.out.println("Headless mode: " + headless);
@@ -149,6 +149,25 @@ public class TestBase extends BaseStepDefinitions {
 
     public String getProperty(String key) {
         return properties.getProperty(key);
+    }
+
+    private boolean resolveHeadlessMode() {
+        String headlessOverride = System.getProperty("headless");
+        if (headlessOverride != null && !headlessOverride.isBlank()) {
+            return Boolean.parseBoolean(headlessOverride.trim());
+        }
+
+        String githubActions = System.getenv("GITHUB_ACTIONS");
+        if ("true".equalsIgnoreCase(githubActions)) {
+            return true;
+        }
+
+        String ci = System.getenv("CI");
+        if ("true".equalsIgnoreCase(ci)) {
+            return true;
+        }
+
+        return Boolean.parseBoolean(getProperty("headless"));
     }
 
     private int getIntProperty(String key, int defaultValue) {

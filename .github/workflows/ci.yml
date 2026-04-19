@@ -64,7 +64,7 @@ jobs:
         run: mvn -B -ntp exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps"
 
       - name: Run TestNG suite
-        run: mvn -B -ntp test -Denv=${{ github.event_name == 'workflow_dispatch' && inputs.test_env || 'dev' }}
+        run: mvn -B -ntp test -Denv=${{ github.event_name == 'workflow_dispatch' && inputs.test_env || 'dev' }} -Dheadless=true
 
       - name: Upload test reports
         if: always()
